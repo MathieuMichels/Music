@@ -54,8 +54,7 @@ def midifile(filename):
     secondes = duration - (minutes * 60)
 
     print("Number of notes:", len(mem2), "\n\n")
-    print("The song has a duration of {} seconds, which is {} minutes and {} seconds..\n\n".format(duration, minutes,
-                                                                                                   secondes))
+    print("The song has a duration of {} seconds, which is {} minutes and {} seconds..\n\n".format(duration, minutes, secondes))
     # --------------------------------------------------------------------
     # Generate a list with the total amount of note per second
     # --------------------------------------------------------------------
