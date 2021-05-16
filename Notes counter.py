@@ -31,7 +31,7 @@ def midifile(filename):
     mid = MidiFile(filename)
     mididict = []
     for i in mid:
-        if i.type == 'note_on':
+        if i.type == 'note_on' or i.type == 'note_off' or i.type == 'time_signature':
             mididict.append(i.dict())
     # --------------------------------------------------------------------
     # Generate a list from the dictionary with only note_on and time info
@@ -45,8 +45,17 @@ def midifile(filename):
         if i['type'] == 'note_on' and i['velocity'] == 0:
             i['type'] = 'note_off'
         if i['type'] == 'note_on':
-            mem2.append(i['time'])
+            mem2.append(int(i['time']))
+    # --------------------------------------------------------------------
+    # Print some stupid stuff
+    # --------------------------------------------------------------------
+    duration = max(mem2)
+    minutes = duration // 60
+    secondes = duration - (minutes * 60)
 
+    print("Number of notes:", len(mem2), "\n\n")
+    print("The song has a duration of {} seconds, which is {} minutes and {} seconds..\n\n".format(duration, minutes,
+                                                                                                   secondes))
     # --------------------------------------------------------------------
     # Generate a list with the total amount of note per second
     # --------------------------------------------------------------------
@@ -54,16 +63,6 @@ def midifile(filename):
     for i in range(int(duration)+1):
         notes.append([i+1,mem2.count(i)])
     notes.append([int(duration)+2,0]) # Add one frame for last second and 0 note
-
-    # --------------------------------------------------------------------
-    # Print some stupid stuff
-    # --------------------------------------------------------------------
-    duration = max(mem2)
-    minutes = duration // 60
-    secondes = duration - (minutes * 60)
-    print("Number of notes:", len(mem2), "\n\n")
-    print("The song has a duration of {} seconds, which is {} minutes and {} seconds..\n\n".format(duration, minutes,secondes))
-
     # --------------------------------------------------------------------
     # Return the list notes[i] = [time, notes/sec]
     # --------------------------------------------------------------------
@@ -92,6 +91,7 @@ def video(tps,txte,my_video,txte1,foldername):
     # --------------------------------------------------------------------
     # Adding text (notes/sec on the left side, total notes on the right)
     # --------------------------------------------------------------------
+
     my_text = mp.TextClip(txte, font ="Times New Roman", color ="white", fontsize = 100)
     txt_col = my_text.on_color(size=(my_video.w + my_text.w, my_text.h + 5), color=(0, 0, 0), pos=(6,"center"), col_opacity=0.6)
     txt_mov = txt_col.set_pos(lambda t: (max(int(360), int(360)), max(int(540), int(540))))
