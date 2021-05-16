@@ -92,10 +92,10 @@ def video(tps,txte,my_video,txte1,foldername):
     # Adding text (notes/sec on the left side, total notes on the right)
     # --------------------------------------------------------------------
 
-    my_text = mp.TextClip(txte, font ="Times New Roman", color ="white", fontsize = 100)
+    my_text = mp.TextClip(txte, font ="CMU Bright", color ="white", fontsize = 100)
     txt_col = my_text.on_color(size=(my_video.w + my_text.w, my_text.h + 5), color=(0, 0, 0), pos=(6,"center"), col_opacity=0.6)
     txt_mov = txt_col.set_pos(lambda t: (max(int(360), int(360)), max(int(540), int(540))))
-    my_text1 = mp.TextClip(txte1, font="Times New Roman", color="white", fontsize=100)
+    my_text1 = mp.TextClip(txte1, font="CMU Bright", color="white", fontsize=100)
     txt_col1 = my_text1.on_color(size=(my_video.w + my_text.w, my_text.h + 5), color=(0, 0, 0), pos=(6, "center"), col_opacity=0.6)
     txt_mov1 = txt_col1.set_pos(lambda t: (max(int(960), int(960)), max(int(540), int(540))))
 
