@@ -1,12 +1,12 @@
 # ----------------------------------------------------------
 # import some packages
 # ----------------------------------------------------------
-from mido import MidiFile # Open midi files
-import moviepy.editor as mp # Video editor
+from mido import MidiFile                         # Open midi files
+import moviepy.editor as mp                       # Video editor
 from moviepy.editor import concatenate_videoclips # Merging videos
-import time # Because speed is important
-from tkinter import * # Visual interface
-from tkinter.filedialog import * # Easy file opening
+import time                                       # Because speed is important
+from tkinter import *                             # Visual interface
+from tkinter.filedialog import *                  # Easy file opening
 # ----------------------------------------------------------
 # init
 # ----------------------------------------------------------
