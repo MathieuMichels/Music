@@ -49,5 +49,6 @@ In this video, you'll have on the left side the notes/sec counter and on the rig
 
 If you want to change the font, you can do it at line 95 and 98 by changing ```font="CMU Bright"```.
 
+### Extra infos
 On my computer, it takes about 110 - 140% of the video's time to create the final video. 
 It's not fast at all, but like I said I'm not a computer genius, so if some people feel motivated to help me optimize this stuff, I'm interested 😉
