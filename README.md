@@ -11,7 +11,7 @@ PS: I would like to go from the "per second" version to something more instantan
 Or even ideally every time a note is played. 
 But I haven't figured out how to do it yet. If anyone knows, I'm interested 😉.
 
-Actually, I found [something that can do what I whant](https://github.com/hccdy/midi-counter-gen), but it's in C#, 
+Actually, I found [something that can do what I want](https://github.com/hccdy/midi-counter-gen), but it's in C#, 
 I don't know C# yet, and I've found an issue in his code: instantaneous speed and the total is exactly twice as high as the reality ....
 
 
