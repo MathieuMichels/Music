@@ -7,8 +7,7 @@ from moviepy.editor import concatenate_videoclips # Merging videos
 import time                                       # Because speed is important
 from tkinter import *                             # Visual interface
 from tkinter.filedialog import *                  # Easy file opening
-#import gizeh                                      # Create a black frame
-import subprocess, os, platform
+import subprocess, os, platform                   # Easy file opening ep. 2
 # ----------------------------------------------------------
 # init
 # ----------------------------------------------------------
