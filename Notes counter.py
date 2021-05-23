@@ -7,6 +7,8 @@ from moviepy.editor import concatenate_videoclips # Merging videos
 import time                                       # Because speed is important
 from tkinter import *                             # Visual interface
 from tkinter.filedialog import *                  # Easy file opening
+#import gizeh                                      # Create a black frame
+import subprocess, os, platform
 # ----------------------------------------------------------
 # init
 # ----------------------------------------------------------
@@ -70,7 +72,8 @@ def midifile(filename):
 # ----------------------------------------------------------
 # Generate 1 frame
 # ----------------------------------------------------------
-def video(tps,txte,my_video,txte1,foldername):
+
+def video(tps,txte,my_video,txte1,foldername,font="CMY Bright",color="white",fontsize=100,notes="NOTES/SEC: ",total="TOTAL: "):
     """
     :param tps: clip start time
     :param txte: text of the clip, basically the number of notes per second
@@ -80,41 +83,29 @@ def video(tps,txte,my_video,txte1,foldername):
     :return: A ".mp4" video with all of the above in the correct folder.
     Add the new video to the global list of video created.
     """
-    # --------------------------------------------------------------------
-    # video settings (size & time)
-    # --------------------------------------------------------------------
-
-    w, h = my_video.size
-    my_video = my_video.subclip(tps,tps+1)
 
     # --------------------------------------------------------------------
     # Adding text (notes/sec on the left side, total notes on the right)
     # --------------------------------------------------------------------
 
-    my_text = mp.TextClip(txte, font ="CMU Bright", color ="white", fontsize = 100)
-    txt_col = my_text.on_color(size=(my_video.w + my_text.w, my_text.h + 5), color=(0, 0, 0), pos=(6,"center"), col_opacity=0.6)
-    txt_mov = txt_col.set_pos(lambda t: (max(int(360), int(360)), max(int(540), int(540))))
-    my_text1 = mp.TextClip(txte1, font="CMU Bright", color="white", fontsize=100)
-    txt_col1 = my_text1.on_color(size=(my_video.w + my_text.w, my_text.h + 5), color=(0, 0, 0), pos=(6, "center"), col_opacity=0.6)
-    txt_mov1 = txt_col1.set_pos(lambda t: (max(int(960), int(960)), max(int(540), int(540))))
-
+    my_text  = mp.TextClip(notes + txte, font = font, color = color, fontsize = fontsize).set_position((10,0))
+    my_text1 = mp.TextClip(total + txte1,font = font, color = color, fontsize = fontsize).set_position((10,fontsize*1.2))
     # --------------------------------------------------------------------
     # Save the video
     # --------------------------------------------------------------------
-    final = mp.CompositeVideoClip([my_video, txt_mov,txt_mov1])
+    final = mp.CompositeVideoClip([my_video, my_text,my_text1])
     save_as = foldername + "/partial_video_output_" + str(tps) + ".mp4"
     final.subclip(tps,tps+1).write_videofile(save_as, fps = 1, codec ="libx264")
-
     # --------------------------------------------------------------------
     # Add the new video into the global clips list
     # --------------------------------------------------------------------
     global clips
-    clips.append(save_as)
+    clips.append(mp.VideoFileClip(save_as))
 
 # ----------------------------------------------------------
 # Generate full video
 # ----------------------------------------------------------
-def video1(filename,foldername,videoname):
+def video1(filename,foldername,fontsize,note,total, w=1000,h=250,colorbg=(0,0,0),colortxt="white",font="CMU Bright",videooutput="/final_video_output.mp4"):
     """
     :param filename: name of the .mid file to analyze.
     :param foldername: name of the folder in which to save the clip
@@ -133,7 +124,8 @@ def video1(filename,foldername,videoname):
     # --------------------------------------------------------------------
     # I don't play music, I don't care about audio=True
     # --------------------------------------------------------------------
-    my_video = mp.VideoFileClip(videoname,audio=False)
+    #my_video = mp.VideoFileClip(videoname,audio=False).resize((w,h))
+    my_video = mp.ColorClip((w,h),color=colorbg)
     # --------------------------------------------------------------------
     # Creating every single seconds of the video
     # --------------------------------------------------------------------
@@ -150,26 +142,19 @@ def video1(filename,foldername,videoname):
         txte = str(notes[i][1])                 # Notes/sec
         notes_counter += notes[i][1]            # Total
         # Create video
-        video(tps,txte,my_video,str(notes_counter),foldername)
+        video(tps,txte,my_video,str(notes_counter),foldername,font,colortxt,fontsize,note,total)
 
-    # Initialize concatenate video
-    final_clip = concatenate_videoclips([mp.VideoFileClip(clips[0])])
-    # --------------------------------------------------------------------
-    # Concatenate the differents clips to create the final video
-    # --------------------------------------------------------------------
-    for i in range(len(clips)):
-        # Again, I've try to make a progress bar but...
-        # ... it works only when the file is corrupt
-        procent1 = ((i+1)/(len(notes)))*100
-        procent11 = "{}% 5% of video merge initialization is complete".format(procent1)
-        advancement1.configure(text=procent11)
-        # Merge the video with the previous merging
-        final_clip = concatenate_videoclips([final_clip,mp.VideoFileClip(clips[i])])
+    final_clip = concatenate_videoclips(clips)
     # --------------------------------------------------------------------
     # Writing the final video
     # --------------------------------------------------------------------
-    videooutput = foldername + "/final_video_output.mp4"
+    videooutput = foldername + videooutput
     final_clip.write_videofile(videooutput,fps=25)
+    for i in range(len(notes)):
+        tps = int(notes[i][0])
+        save_as = foldername + "/partial_video_output_" + str(tps) + ".mp4"
+        os.remove(save_as)
+    clips = []
     # --------------------------------------------------------------------
     # Small texts to celebrate all this shit
     # --------------------------------------------------------------------
@@ -189,7 +174,21 @@ def video1(filename,foldername,videoname):
 # --------------------------------------------------------------------
 window = Tk()
 window.title("Notes/secondes from midi files")
-window.geometry("700x250")
+window.geometry("820x450")
+# --------------------------------------------------------------------
+# Initialize global filename, videoname & foldername
+# --------------------------------------------------------------------
+filename   = ""
+foldername = ""
+fontsize = 100
+w = int(fontsize*5)
+h = int(fontsize*1.2)
+colorbg = (0,0,0)
+colortxt = "white"
+font = "CMU Bright"
+notes = "NOTES/SEC: "
+total = "TOTAL: "
+videooutput = "/final_video_output.mp4"
 # --------------------------------------------------------------------
 # 4 buttons, 4 fonctions
 # --------------------------------------------------------------------
@@ -207,22 +206,8 @@ def clicked():
 
     return filename
 
+
 def clicked1():
-    """
-    :return: global videoname
-    """
-    global videoname
-
-    videoname = askopenfilename(title="Choose the black video",filetypes=[('Video file', '.mp4')])
-
-    if len(videoname)>0: #checks if there is a file selected
-
-        open1.configure(text="Video successfully opened",fg="green")
-        open12.configure(text= str(videoname) + " video opened.")
-
-    return videoname
-
-def clicked2():
     """
     :return: global foldername
     """
@@ -235,22 +220,56 @@ def clicked2():
 
     return foldername
 
-def clicked3():
+def clicked2():
     """
     :return: successfully created video
     """
-    global foldername,filename,videoname,t
+    global foldername,filename,w,h,colorbg,colortxt,font,fontsize,notes,total,videooutput
     # Because speed is important (I know, I don't return or print time, but it's OK.)
     t = time.time()
-    video1(filename,foldername,videoname)
+    if int(getfontsize1.get())>0:
+       fontsize = int(getfontsize1.get())
+    if len(getfont1.get()) > 0:
+        font = getfont1.get()
+    if len(getcolor1.get()) >0:
+        colortxt = getcolor1.get()
+    if len(getnotes1.get()) >0:
+        notes = getnotes1.get()
+    if len(gettotal1.get())>0:
+        total = gettotal1.get()
+    if len(getvideooutput.get())>0:
+        videooutput = "/"+ getvideooutput.get() + ".mp4"
+    w = int(fontsize*10)
+    h = int(fontsize*2.5)
+    video1(filename,foldername,fontsize,notes,total, w, h, colorbg,colortxt,font,videooutput)
+    openfolder = Button(window, text="Open folder",command = clicked3)
+    openfolder.grid(column=1,row=11)
+    openfile4 = Button(window, text="Launch file", command=clicked4)
+    openfile4.grid(column=1, row=13)
     return foldername
 
-# --------------------------------------------------------------------
-# Initialize global filename, videoname & foldername
-# --------------------------------------------------------------------
-filename   = ""
-videoname  = ""
-foldername = ""
+def clicked3():
+    global foldername, videooutput
+    filepath = foldername
+    if platform.system() == 'Darwin':  # macOS
+        subprocess.call(('open', filepath))
+    elif platform.system() == 'Windows':  # Windows
+        os.startfile(filepath)
+    else:  # linux variants
+        subprocess.call(('xdg-open', filepath))
+    openfolder = Label(window,text="Folder succesfully opened",fg='green')
+    openfolder.grid(column=1,row=12)
+def clicked4():
+    global foldername, videooutput
+    filepath = foldername + videooutput
+    if platform.system() == 'Darwin':  # macOS
+        subprocess.call(('open', filepath))
+    elif platform.system() == 'Windows':  # Windows
+        os.startfile(filepath)
+    else:  # linux variants
+        subprocess.call(('xdg-open', filepath))
+    openfolder = Label(window, text="File succesfully launched", fg='green')
+    openfolder.grid(column=1, row=14)
 # --------------------------------------------------------------------
 # Configure texts and buttons of the Tkinter window
 # --------------------------------------------------------------------
@@ -259,40 +278,64 @@ foldername = ""
 # --------------------------------------------------------------------
 open02 = Label(window,text="")
 open02.grid(column=1,row=1)
-open = Label(window,text="No files opened",fg="red")
+open = Label(window,text="  No midi file opened  ",fg="red")
 open.grid(column=0,row=0)
 openfile = Button(window,text="Choose your midi file",command=clicked)
 openfile.grid(column=1,row=0)
 # --------------------------------------------------------------------
-# Black video
-# --------------------------------------------------------------------
-open12 = Label(window,text="")
-open12.grid(column=1,row=3)
-open1 = Label(window,text="No files opened",fg="red")
-open1.grid(column=0,row=2)
-openfile1 = Button(window,text="Choose the black video",command=clicked1)
-openfile1.grid(column=1,row=2)
-# --------------------------------------------------------------------
 # Output folder
 # --------------------------------------------------------------------
 open22 = Label(window,text="")
-open22.grid(column=1,row=5)
-open2 = Label(window,text="No files opened",fg="red")
-open2.grid(column=0,row=4)
-openfile2 = Button(window,text="Choose an output folder",command=clicked2)
-openfile2.grid(column=1,row=4)
+open22.grid(column=1,row=3)
+open2 = Label(window,text="  No folder selected    ",fg="red")
+open2.grid(column=0,row=2)
+openfile2 = Button(window,text="Choose an output folder",command=clicked1)
+openfile2.grid(column=1,row=2)
 # --------------------------------------------------------------------
 # Render the video
 # --------------------------------------------------------------------
-openfile3 = Button(window,text="Render the video",command=clicked3)
-openfile3.grid(column=1,row=6)
+openfile3 = Button(window,text="Render the video",command=clicked2)
+openfile3.grid(column=1,row=4)
 # --------------------------------------------------------------------
 # ... progress bar ...
 # --------------------------------------------------------------------
 advancement = Label(window,text="0%",fg="red")
-advancement.grid(column=1,row=7)
-advancement1 = Label(window,text="0%",fg="red")
-advancement1.grid(column=1,row=8)
+advancement.grid(column=1,row=5)
+advancement1 = Label(window,text=" "*70 + "0%" + " "*70,fg="red")
+advancement1.grid(column=1,row=6)
+# --------------------------------------------------------------------
+# color, font
+# --------------------------------------------------------------------
+getfontsize = Label(window,text="Fontsize")
+getfontsize.grid(column=2,row=0)
+getfontsize1 = Entry(window)
+getfontsize1.insert(0,"100")
+getfontsize1.grid(column=3,row=0)
+getcolor = Label(window,text="Text color")
+getcolor.grid(column=2,row=1)
+getcolor1 = Entry(window)
+getcolor1.insert(0,'White')
+getcolor1.grid(column=3,row=1)
+getfont = Label(window,text="Font")
+getfont.grid(column=2,row=2)
+getfont1 = Entry(window)
+getfont1.insert(0,"CMU Bright")
+getfont1.grid(column=3,row=2)
+getnotes = Label(window,text="Text notes/secondes")
+getnotes.grid(column=2,row=3)
+getnotes1 = Entry(window)
+getnotes1.insert(0,"NOTES/SEC: ")
+getnotes1.grid(column=3,row=3)
+gettotal = Label(window,text="Text total")
+gettotal.grid(column=2,row=4)
+gettotal1 = Entry(window)
+gettotal1.insert(0,"TOTAL: ")
+gettotal1.grid(column=3,row=4)
+getvideooutput = Label(window,text="Video output name")
+getvideooutput.grid(column=2,row=5)
+getvideooutput = Entry(window)
+getvideooutput.insert(0,"final_video_output")
+getvideooutput.grid(column=3,row=5)
 # --------------------------------------------------------------------
 # And of course...
 # --------------------------------------------------------------------
